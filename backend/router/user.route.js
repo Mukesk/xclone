@@ -7,4 +7,5 @@ userRoute.post("/follow/:id",protectorcookie,followingRequest)
 userRoute.get("/suggestion",protectorcookie,suggested)
 userRoute.post("/updateProfile",protectorcookie,updateProfile)
 
+
 export default userRoute

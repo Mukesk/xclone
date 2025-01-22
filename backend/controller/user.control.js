@@ -2,6 +2,7 @@ import User from "../model/usermodel.js"
 import Notification from "../model/notification.js"
 import bcryptjs from "bcryptjs"
 import cloudinary from "cloudinary"
+import Post from "../model/postmodel.js"
 export const searchProfile=async(req,res)=>{
     try{
        const {username}=req.params
@@ -127,4 +128,3 @@ export const suggested = async (req, res) => {
        
 
   }
-  

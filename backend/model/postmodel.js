@@ -7,7 +7,8 @@ const postScheme =new mongoose.Schema({
     }
     ,user:{
         type:mongoose.Schema.Types.ObjectId,
-        required:true
+        required:true,
+        ref:"User"
     }
     ,text:{
         type:String,
@@ -16,7 +17,8 @@ const postScheme =new mongoose.Schema({
     likes:[
         {
             type:mongoose.Schema.Types.ObjectId,
-            default:[]
+            default:[],
+            ref:"User"
         }
         
 
@@ -24,7 +26,8 @@ const postScheme =new mongoose.Schema({
     comments:[
         {
             type:mongoose.Schema.Types.ObjectId,
-            default:[]
+            default:[],
+            ref:"User"
         }
     ]
 })

@@ -24,6 +24,15 @@ const userSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    likedPosts:[
+      {
+       type:mongoose.Schema.Types.ObjectId,
+       ref:"Post",
+       default:[]
+      }
+
+
+    ],
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,

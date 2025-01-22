@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser"
 import userRoute from "./router/user.route.js"
 import cloudinary from "cloudinary"
 import postroute from "./router/post.route.js"
+import notRoute from "./router/notification.route.js"
 cloudinary.config(process.env.CLOUDINARY_KEY ,process.env.CLOUDINARY_SECERT)
 dotenv.config()
 const app = express()
@@ -17,6 +18,7 @@ app.use(bodyParser.urlencoded({  extended: true }));
 app.use("/api/auth/",router)
 app.use("/api/user" ,userRoute)
 app.use("/api/post/",postroute)
+app.use("/api/notification/",notRoute)
 app.use(express.json())
 app.listen(PORT,()=>{
     dbcon();
