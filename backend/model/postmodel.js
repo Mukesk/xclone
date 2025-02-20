@@ -30,6 +30,6 @@ const postScheme =new mongoose.Schema({
             ref:"User"
         }
     ]
-})
+},{timestamps:true})
 const Post = mongoose.model("Posts",postScheme)
 export default Post

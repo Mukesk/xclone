@@ -1,6 +1,6 @@
 import express from "express"
 import protectorcookie from "../middleware/protectorcookie.js"
-import { createPost, deletePost, getLikedpost, likeUnlike } from "../controller/post.control.js"
+import { createPost, deletePost, getallPost, getLikedpost, likeUnlike } from "../controller/post.control.js"
 import Route from "express/lib/router/route.js"
 import { followingPost, forYou, likedPost } from "../controller/post.control.js"
 const postroute = express.Router()
@@ -11,4 +11,5 @@ postroute.get("/liked/:id",protectorcookie,likedPost)
 postroute.get("/foryou",protectorcookie,forYou)
 postroute.get("/following",protectorcookie,followingPost)
 postroute.get("/likedpost",protectorcookie,getLikedpost)
+postroute.get("/getallPosts",protectorcookie,getallPost)
 export default postroute

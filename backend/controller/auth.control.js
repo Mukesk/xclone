@@ -84,14 +84,19 @@ export const login = async(req,res)=>{
     }
 }
 export const logout = async(req,res)=>{
-    try{
-        res.cookie("jvt", "",{maxAge:""})
-        res.status(200).json({msg:"logout successful"})
-    }
-    catch(Err){
-        res.status(500).json({err:"err in logout"})
-    }
-        }
+    try {
+        res.cookie("jvt", "", {
+          maxAge: 0, // Expire immediately
+          httpOnly: true, // Secure and inaccessible from client-side scripts
+          secure: true, // Use true if running over HTTPS
+          sameSite: "Strict", // Prevent cross-site cookie issues
+        });
+        res.status(200).json({ msg: "Logout successful" });
+      } catch (err) {
+        res.status(500).json({ err: "Error during logout" });
+      }
+      
+                }
         
         export const getme = async (req, res) => {
             try {
