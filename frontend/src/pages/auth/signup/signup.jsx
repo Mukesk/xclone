@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import baseUrl from "../../../constant/baseUrl";
 import axios from "axios";
-import toast,{ Toaster} from "react-hot-toast"
+import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom"; // For navigation after successful signup
 
 const Signup = () => {
   const [userData, setUserData] = useState({
@@ -11,6 +12,8 @@ const Signup = () => {
     username: "",
     password: "",
   });
+
+  const navigate = useNavigate(); // To redirect user after successful signup
 
   const { mutate, isLoading, isError, error } = useMutation({
     mutationFn: async ({ firstname, email, username, password }) => {
@@ -29,10 +32,10 @@ const Signup = () => {
     },
     onSuccess: () => {
       toast.success("User created successfully");
-
+      navigate("/login"); // Redirect to the login page after signup
     },
     onError: (error) => {
-      console.error("Signup failed:", error);
+      toast.error("Signup failed: " + (error.response?.data?.message || "Unknown error"));
     },
   });
 
@@ -42,7 +45,7 @@ const Signup = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutate(userData);
+    mutate(userData); // Call the mutation function
   };
 
   return (
@@ -98,26 +101,31 @@ const Signup = () => {
           <button
             type="submit"
             className="p-1 rounded border border-slate-500"
+            disabled={isLoading} // Disable the button while loading
           >
-            Signup
+            {isLoading ? "Signing up..." : "Signup"} {/* Show loading text */}
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              console.log(userData);
-            }}
-          >
-            Check
-          </button>
-
-          {isLoading && <p>Submitting...</p>}
           {isError && (
-            <p className="text-red-500">Error: {error.message || "Signup failed"}</p>
+            <p className="text-red-500">
+              Error: {error?.response?.data?.message || "Signup failed"}
+            </p>
           )}
+
+          {/* Add the "Already have an account?" text and the Login button */}
+          <div className="flex justify-center items-center mt-4">
+            <p className="text-white mr-2">Already have an account?</p>
+            <button
+              type="button"
+              onClick={() => navigate("/login")} // Redirect to login page
+              className="text-blue-500"
+            >
+              Login
+            </button>
+          </div>
         </form>
       </div>
-      <Toaster/>
+      <Toaster />
     </>
   );
 };

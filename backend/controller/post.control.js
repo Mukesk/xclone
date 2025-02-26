@@ -121,7 +121,45 @@ export const likeUnlike = async (req, res) => {
     return res.status(500).json({ error: "Error in liking/unliking post" });
   }
 };
+export const commentPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { comment } = req.body;
 
+    // Check if comment is not empty
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ error: "Comment cannot be empty" });
+    }
+
+    // Find post and user
+    const post = await Post.findById(id);
+    const user = await User.findById(req.user._id);
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Add comment
+    post.comments.push({ text: comment, user: {profile:user.profile,username:user.username,firstname:user.firstname}});
+
+    // Save the post and populate the comments with user data
+    await post.save();
+
+    // Populate comments with user data and return the updated post
+    const updatedPost = await Post.findById(id).populate({
+      path: "comments.user",
+      select: ["-password", "-email", "-link", "-bio"],
+    });
+
+    return res.status(200).json({ success: "Comment added", updatedPost });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Error in commenting post" });
+  }
+};
 
 
 

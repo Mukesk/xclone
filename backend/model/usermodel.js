@@ -13,7 +13,6 @@ const userSchema = new mongoose.Schema(
     },
     lastname: {
       type: String,
-     
     },
     password: {
       type: String,
@@ -24,14 +23,12 @@ const userSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    likedPosts:[
+    likedPosts: [
       {
-       type:mongoose.Schema.Types.ObjectId,
-       ref:"Post",
-       default:[]
-      }
-
-
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post", // Changed from "Posts" to "Post"
+        default: [],
+      },
     ],
     followers: [
       {
@@ -66,5 +63,4 @@ const userSchema = new mongoose.Schema(
 );
 
 const User = mongoose.model("User", userSchema);
-
 export default User;

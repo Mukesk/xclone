@@ -6,7 +6,7 @@ import axios from "axios";
 
 const EditProfileModal = () => {
 	const [formData, setFormData] = useState({
-		firstName: "",
+		firstname: "",
 		username: "",
 		email: "",
 		bio: "",
@@ -20,14 +20,13 @@ const EditProfileModal = () => {
 	};
 
 	const updateData = useMutation({
-		mutationFn: async (updatedData) => {
+		mutationFn: async (formData) => {
 			const res = await axios.post(
 				`${baseUrl}/api/user/updateProfile`,
-				updatedData,
+				formData,
 				{
 					headers: {
 						"Content-Type": "application/json",
-						Accept: "application/json",
 					},
 					withCredentials: true,
 				}
@@ -45,7 +44,7 @@ const EditProfileModal = () => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		updateData.mutate(formData);
+		updateData.mutate(formData); // ✅ Corrected form data submission
 	};
 
 	return (
@@ -65,10 +64,9 @@ const EditProfileModal = () => {
 								type="text"
 								placeholder="First Name"
 								className="flex-1 input border border-gray-700 rounded p-2 input-md"
-								value={formData.firstName}
-								name="firstName"
+								value={formData.firstname}
+								name="firstname"
 								onChange={handleInputChange}
-								
 							/>
 							<input
 								type="text"
@@ -77,7 +75,6 @@ const EditProfileModal = () => {
 								value={formData.username}
 								name="username"
 								onChange={handleInputChange}
-								
 							/>
 						</div>
 						<div className="flex flex-wrap gap-2">
@@ -88,7 +85,6 @@ const EditProfileModal = () => {
 								value={formData.email}
 								name="email"
 								onChange={handleInputChange}
-								
 							/>
 							<textarea
 								placeholder="Bio"

@@ -1,2 +1,2 @@
-const baseUrl = "http://localhost:5000"
-export default  baseUrl ;
+const baseUrl = import.meta.env.VITE_BACKEND_URL; 
+export default baseUrl;

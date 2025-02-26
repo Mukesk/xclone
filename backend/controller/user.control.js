@@ -97,40 +97,34 @@ export const suggested = async (req, res) => {
   
       const user = req.user;
   
-      // ✅ Debugging: Ensure user is being retrieved
-      console.log("Current User Data:", user);
-  
+      // ✅ Ensure user exists
       if (!user) {
         return res.status(404).json({ err: "User not found" });
       }
   
-      // ✅ Check if a new password is provided but the current one is missing
-      if (!current_password && new_password) {
-        return res.status(400).json({ err: "Please enter your current password" });
-      }
-  
       // ✅ If updating password, verify current password
-      if (current_password && new_password) {
+      if (new_password) {
+        if (!current_password) {
+          return res.status(400).json({ err: "Please enter your current password" });
+        }
+  
         const isCorrect = await bcryptjs.compare(current_password, user.password);
-  
-        console.log("Password Match:", isCorrect); // Debugging
-  
         if (!isCorrect) {
           return res.status(400).json({ err: "Current password is incorrect" });
         }
   
-        // Hash the new password
+        // Hash new password
         const salt = await bcryptjs.genSalt(10);
         user.password = await bcryptjs.hash(new_password, salt);
         user.markModified("password");
       }
   
-      // ✅ Update user details
-      user.username = username || user.username;
-      user.email = email || user.email;
-      user.firstname = firstname || user.firstname;
-      user.bio = bio || user.bio;
-      user.link = link || user.link;
+      // ✅ Update user details (only if provided)
+      if (username) user.username = username;
+      if (email) user.email = email;
+      if (firstname) user.firstname = firstname;
+      if (bio) user.bio = bio;
+      if (link) user.link = link;
   
       user.markModified("username");
       user.markModified("email");
@@ -146,9 +140,8 @@ export const suggested = async (req, res) => {
             await cloudinary.uploader.destroy(secureUrl);
           }
           const upload = await cloudinary.uploader.upload(profile);
-          user.profile= upload.secure_url;
-          console.log("Profile Image Uploaded:", user.profileImg);
-          user.markModified("profileImg");
+          user.profile = upload.secure_url;
+          user.markModified("profile");
         } catch (error) {
           console.error("Cloudinary Profile Image Upload Error:", error);
           return res.status(500).json({ err: "Error uploading profile image" });
@@ -164,15 +157,14 @@ export const suggested = async (req, res) => {
           }
           const upload = await cloudinary.uploader.upload(coverimg);
           user.coverimg = upload.secure_url;
-          console.log("Cover Image Uploaded:", user.coverimg);
-          user.markModified("coverImg");
+          user.markModified("coverimg");
         } catch (error) {
           console.error("Cloudinary Cover Image Upload Error:", error);
           return res.status(500).json({ err: "Error uploading cover image" });
         }
       }
   
-      // ✅ Save updates
+      // ✅ Save user updates
       await user.save();
   
       // ✅ Send updated user data to frontend
