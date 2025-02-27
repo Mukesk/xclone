@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/login/login";
 import Signup from "./pages/auth/signup/signup";
 import Home from "./pages/home/home.jsx";
-import Sidebar from "./components/common/sidebar.jsx";
+import Sidebar from "./components/common/Sidebar.jsx";
 import NotificationPage from "./pages/notification/NotificationPage.jsx"
 import ProfilePage from "./pages/profile/ProfilePage.jsx"
 import RightPanel from "./components/common/RightPanel"
