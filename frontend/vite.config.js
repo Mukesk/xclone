@@ -3,9 +3,9 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "./", // Change to "/" if deploying on root domain
+  base: "/", // Use "/" if deploying to a custom domain
   build: {
-    outDir: "dist", // Ensure build output goes to "dist/"
-    emptyOutDir: true
+    outDir: "dist/", // Ensure build output goes to "dist/"
+    emptyOutDir: true,
   }
 });
