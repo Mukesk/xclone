@@ -3,9 +3,10 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/", // Use "/" if deploying to a custom domain
+  base: "/", // Important for Vercel
   build: {
-    outDir: "dist/", // Ensure build output goes to "dist/"
+    outDir: "dist",
     emptyOutDir: true,
+    assetsDir: "assets",
   }
 });
