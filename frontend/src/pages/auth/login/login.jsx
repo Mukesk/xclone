@@ -38,7 +38,7 @@ const Login = () => {
       console.log('Login successful');
       toast.success('Login successful');
       queryClient.invalidateQueries(['logout']);
-      navigate('/dashboard'); // Redirect to dashboard after successful login
+      navigate('/'); // Redirect to dashboard after successful login
     },
     onError: (error) => {
       toast.error('Login failed: ' + error.response?.data?.message || 'Unknown error');
