@@ -12,6 +12,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.65.1",
     "axios": "^1.7.9",
+    "cross-env": "^7.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.5.1",
