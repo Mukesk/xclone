@@ -32,25 +32,33 @@ const connectDB = async () => {
 };
 
 // Middleware
+// CORS configuration
 app.use(cors({
     origin: function(origin, callback) {
-        const allowedOrigins = [
-            process.env.FRONTEND_URL,
-            "http://localhost:5173",
-            "http://localhost:5174",
-            "https://localhost:5173",
-            "https://localhost:5174"
-        ];
+        console.log('CORS Origin:', origin);
         
-        // Allow Vercel preview deployments and production
-        if (!origin || 
-            allowedOrigins.includes(origin) || 
-            origin.includes('.vercel.app') ||
-            origin.includes('localhost')) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
+        // Allow no origin (for mobile apps, Postman, etc.)
+        if (!origin) {
+            return callback(null, true);
         }
+        
+        // Allow localhost for development
+        if (origin.includes('localhost')) {
+            return callback(null, true);
+        }
+        
+        // Allow any mukesks-projects.vercel.app subdomain
+        if (origin.includes('mukesks-projects.vercel.app')) {
+            return callback(null, true);
+        }
+        
+        // Allow any .vercel.app domain (for other deployments)
+        if (origin.includes('.vercel.app')) {
+            return callback(null, true);
+        }
+        
+        console.log('CORS Blocked:', origin);
+        callback(new Error('Not allowed by CORS'));
     },
     credentials: true, 
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -67,6 +75,9 @@ app.use(cors({
     preflightContinue: false,
     optionsSuccessStatus: 200
 }));
+
+// Add explicit preflight handling
+app.options('*', cors());
 
 app.use(express.json({ limit: "5000mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
