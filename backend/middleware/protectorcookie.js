@@ -10,7 +10,7 @@ const protectorcookie= async (req, res, next) => {
     }
 
     // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECERT);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (!decoded) {
       return res.status(403).json({ error: "Invalid or expired token." });
     }

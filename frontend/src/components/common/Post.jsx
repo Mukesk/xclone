@@ -1,41 +1,36 @@
 import { FaRegComment } from "react-icons/fa";
 import { BiRepost } from "react-icons/bi";
-import { FaRegHeart } from "react-icons/fa";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { use } from "react";
-import { Mutation, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import baseUrl from "../../constant/baseUrl";
 import toast from "react-hot-toast";
+import { HiDotsVertical } from "react-icons/hi";
+import { formatDistanceToNow } from "date-fns";
 axios.defaults.maxContentLength = 5 * 1024 * 1024; // 5MB response limit
 axios.defaults.maxBodyLength = 5 * 1024 * 1024;
 
 
 const Post = ({ post }) => {
 	const [comment, setComment] = useState("");
+	const [isHovered, setIsHovered] = useState(false);
+	const [showDropdown, setShowDropdown] = useState(false);
 	const {data:authData }=useQuery({
 		queryKey:['authData']
 	})
 	const queryClient=useQueryClient()
 	const postOwner = post.user;
-	const isLiked=authData.likedPosts.includes(post._id)
+	const isLiked = authData?.likedPosts?.includes(post._id) || false;
 
-	const isMyPost = post.user._id.toString()===authData._id.toString();
+	const isMyPost = authData && post.user._id.toString() === authData._id.toString();
 
-	const formattedDate =  post?.createdAt
-    ? new Date(post.createdAt).toLocaleString("en-US", {
-        timeZone: "Asia/Kolkata", 
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
-    : "Unknown Date";
+	const formattedDate = post?.createdAt 
+		? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })
+		: "Unknown Date";
 	
 
 
@@ -47,10 +42,10 @@ const Post = ({ post }) => {
 				"Content-Type":"application/json"
 			},withCredentials:true})
 			return res.data				},
-			onSuccess:()=>{
-				toast.success("deleted post")
-				queryClient.invalidateQueries(["posts"]); 
-			}
+		onSuccess:()=>{
+			toast.success("deleted post")
+			queryClient.invalidateQueries(["getPosts"]); 
+		}
 	}
 
 )
@@ -62,9 +57,7 @@ const {mutate:likePost,data:likeData}=useMutation({
 		return res.data				},
 		onSuccess:()=>{
 			toast.success("liked post")
-			queryClient.invalidateQueries(["posts"]); 
-			
-
+			queryClient.invalidateQueries(["getPosts"]); 
 		}
 })
 const { mutate: commentPost } = useMutation({
@@ -78,9 +71,8 @@ const { mutate: commentPost } = useMutation({
 	},
 	onSuccess: (updatedPost) => {
 	  toast.success("Comment added successfully");
-	  queryClient.setQueryData(["posts"], (oldData) => {
-		return oldData.map((p) => (p._id === post._id ? updatedPost : p));
-	  });
+	  queryClient.invalidateQueries(["getPosts"]);
+	  setComment(""); // Clear comment input
 	},
   });
   
@@ -110,130 +102,235 @@ const { mutate: commentPost } = useMutation({
 	};
 
 	return (
-		<>
-			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
-				<div className='avatar'>
-					<Link to={`/profile/${postOwner.username}`} className='w-8 rounded overflow-hidden'>
-						<img className="w-8 " src={postOwner.profile || "/avatar-placeholder.png"} />
-					</Link>
-				</div>
-				<div className='flex flex-col flex-1'>
-					<div className='flex gap-2 items-center'>
-						<Link to={`/profile/${postOwner.username}`} className='font-bold'>
+		<article 
+			className={`group relative bg-gradient-to-br from-gray-900/30 to-gray-800/20 backdrop-blur-sm border border-gray-700/50 rounded-2xl mx-4 my-4 p-6 transition-all duration-300 hover:border-gray-600/50 hover:shadow-2xl hover:shadow-gray-900/20 ${
+				isHovered ? 'transform scale-[1.01]' : ''
+			}`}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+		>
+			{/* Post Header */}
+			<header className='flex items-start gap-4 mb-4'>
+				{/* Avatar with gradient border */}
+				<Link to={`/profile/${postOwner.username}`} className='group/avatar relative'>
+					<div className='w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-0.5 transition-all duration-300 group-hover/avatar:scale-110'>
+						<img 
+							src={postOwner.profile || "/avatar-placeholder.png"} 
+							alt={`${postOwner.firstname}'s avatar`}
+							className='w-full h-full rounded-full object-cover bg-gray-800'
+						/>
+					</div>
+					<div className='absolute inset-0 bg-blue-400/20 rounded-full blur-lg opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300'></div>
+				</Link>
+
+				<div className='flex-1 min-w-0'>
+					<div className='flex items-center gap-2 flex-wrap'>
+						<Link 
+							to={`/profile/${postOwner.username}`} 
+							className='font-bold text-white hover:text-blue-400 transition-colors duration-300'
+						>
 							{postOwner.firstname}
 						</Link>
-						<span className='text-gray-700 flex gap-1 text-sm'>
-							<Link to={`/profile/${postOwner.username}`}>@{postOwner.username}</Link>
-							<span>·</span>
-							<span>{formattedDate}</span>
-						</span>
-						{isMyPost && (
-							<span className='flex justify-end flex-1'>
-								<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
-							</span>
-						)}
-					</div>
-					<div className='flex flex-col gap-3 overflow-hidden'>
-						<span>{post.text}</span>
-						{post.img && (
-							<img
-								src={post.img}
-								className='h-80 object-contain rounded-lg border border-gray-700'
-								alt=''
-							/>
-						)}
-					</div>
-					<div className='flex justify-between mt-3'>
-						<div className='flex gap-4 items-center w-2/3 justify-between'>
-							<div
-								className='flex gap-1 items-center cursor-pointer group'
-								onClick={() => document.getElementById("comments_modal" + post._id).showModal()}
+						
+						<span className='text-gray-400 text-sm flex items-center gap-2'>
+							<Link 
+								to={`/profile/${postOwner.username}`}
+								className='hover:text-gray-300 transition-colors duration-300'
 							>
-								<FaRegComment className='w-4 h-4  text-slate-500 group-hover:text-sky-400' />
-								<span className='text-sm text-slate-500 group-hover:text-sky-400'>
-									{post.comments.length}
-								</span>
-							</div>
-							{/* We're using Modal Component from DaisyUI */}
-							<dialog id={`comments_modal${post._id}`} className='modal border-none outline-none'>
-								<div className='modal-box rounded border border-gray-600'>
-									<h3 className='font-bold text-lg mb-4'>COMMENTS</h3>
-									<div className='flex flex-col gap-3 max-h-60 overflow-auto'>
-										{post.comments.length === 0 && (
-											<p className='text-sm text-slate-500'>
-												No comments yet 🤔 Be the first one 😉
-											</p>
-										)}
-										{post.comments.map((comment) => (
-											<div key={comment._id} className='flex text-black gap-2 items-start'>
-												<div className='avatar'>
-													<div className='w-8 rounded-full'>
-														<img
-															src={comment.user.profile || "/avatar-placeholder.png"}
-														/>
-													</div>
-												</div>
-												<div className='flex flex-col'>
-													<div className='flex items-center gap-1'>
-														<span className='font-bold'>{comment.user?.firstname}</span>
-														<span className='text-gray-700 text-sm'>
-															@{comment.user?.username}
-														</span>
-													</div>
-													<div className='text-sm'>{comment.text}</div>
-												</div>
-											</div>
-										))}
-									</div>
-									<form
-										className='flex gap-2 items-center mt-4 border-t border-gray-600 pt-2'
-										onSubmit={handlePostComment}
-									>
-										<textarea
-											className='textarea w-full p-1 rounded text-md resize-none border focus:outline-none  border-gray-800'
-											placeholder='Add a comment...'
-											value={comment}
-											onChange={(e) => setComment(e.target.value)}
-										/>
-										<button className='btn btn-primary rounded-full btn-sm text-white px-4'>
-											{isCommenting ? (
-												<span className='loading loading-spinner loading-md'></span>
-											) : (
-												"Post"
-											)}
-										</button>
-									</form>
-								</div>
-								<form method='dialog' className='modal-backdrop'>
-									<button className='outline-none'>close</button>
-								</form>
-							</dialog>
-							<div className='flex gap-1 items-center group cursor-pointer'>
-								<BiRepost className='w-6 h-6  text-slate-500 group-hover:text-green-500' />
-								<span className='text-sm text-slate-500 group-hover:text-green-500'>0</span>
-							</div>
-							<div className='flex gap-1 items-center group cursor-pointer' onClick={handleLikePost}>
-								{!isLiked && (
-									<FaRegHeart className='w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500' />
-								)}
-								{isLiked && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
-
-								<span
-									className={`text-sm text-slate-500 group-hover:text-pink-500 ${
-										isLiked ? "text-pink-500" : ""
-									}`}
-								>
-									{post.likes.length}
-								</span>
-							</div>
-						</div>
-						<div className='flex w-1/3 justify-end gap-2 items-center'>
-							<FaRegBookmark className='w-4 h-4 text-slate-500 cursor-pointer' />
-						</div>
+								@{postOwner.username}
+							</Link>
+							<span className='w-1 h-1 bg-gray-500 rounded-full'></span>
+							<time className='hover:text-gray-300 transition-colors duration-300' title={new Date(post.createdAt).toLocaleString()}>
+								{formattedDate}
+							</time>
+						</span>
 					</div>
 				</div>
+
+				{/* More options dropdown */}
+				<div className='relative'>
+					<button
+						className='p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-gray-700/50 transition-all duration-300 text-gray-400 hover:text-white'
+						onClick={() => setShowDropdown(!showDropdown)}
+					>
+						<HiDotsVertical className='w-4 h-4' />
+					</button>
+					
+					{showDropdown && (
+						<div className='absolute right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-10 overflow-hidden'>
+							{isMyPost && (
+								<button
+									className='flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors duration-200'
+									onClick={() => {
+										handleDeletePost();
+										setShowDropdown(false);
+									}}
+								>
+									<FaTrash className='w-4 h-4' />
+									<span className='text-sm font-medium'>Delete Post</span>
+								</button>
+							)}
+						</div>
+					)}
+				</div>
+			</header>
+
+			{/* Post Content */}
+			<div className='mb-6'>
+				{post.text && (
+					<p className='text-white text-lg leading-relaxed mb-4 whitespace-pre-wrap'>
+						{post.text}
+					</p>
+				)}
+				
+				{post.img && (
+					<div className='relative group/image overflow-hidden rounded-2xl border border-gray-700/50'>
+						<img
+							src={post.img}
+							alt='Post image'
+							className='w-full max-h-[500px] object-cover transition-transform duration-500 group-hover/image:scale-105'
+						/>
+						<div className='absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300'></div>
+					</div>
+				)}
 			</div>
-		</>
+			{/* Engagement Actions */}
+			<footer className='flex items-center justify-between pt-4 border-t border-gray-700/30'>
+				<div className='flex items-center gap-8'>
+					{/* Comments */}
+					<button
+						className='group flex items-center gap-2 px-3 py-2 rounded-full hover:bg-blue-500/10 transition-all duration-300'
+						onClick={() => document.getElementById("comments_modal" + post._id).showModal()}
+					>
+						<FaRegComment className='w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors duration-300' />
+						<span className='text-sm font-medium text-gray-400 group-hover:text-blue-400 transition-colors duration-300'>
+							{post.comments.length}
+						</span>
+					</button>
+
+					{/* Repost */}
+					<button className='group flex items-center gap-2 px-3 py-2 rounded-full hover:bg-green-500/10 transition-all duration-300'>
+						<BiRepost className='w-5 h-5 text-gray-400 group-hover:text-green-400 transition-colors duration-300' />
+						<span className='text-sm font-medium text-gray-400 group-hover:text-green-400 transition-colors duration-300'>0</span>
+					</button>
+
+					{/* Like */}
+					<button 
+						className='group flex items-center gap-2 px-3 py-2 rounded-full hover:bg-pink-500/10 transition-all duration-300'
+						onClick={handleLikePost}
+					>
+						{isLiked ? (
+							<FaHeart className='w-5 h-5 text-pink-500 group-hover:scale-110 transition-transform duration-300' />
+						) : (
+							<FaRegHeart className='w-5 h-5 text-gray-400 group-hover:text-pink-500 transition-colors duration-300' />
+						)}
+						<span className={`text-sm font-medium transition-colors duration-300 ${
+							isLiked ? 'text-pink-500' : 'text-gray-400 group-hover:text-pink-500'
+						}`}>
+							{post.likes.length}
+						</span>
+					</button>
+				</div>
+
+				{/* Bookmark */}
+				<button className='group flex items-center gap-2 px-3 py-2 rounded-full hover:bg-yellow-500/10 transition-all duration-300'>
+					<FaRegBookmark className='w-5 h-5 text-gray-400 group-hover:text-yellow-400 transition-colors duration-300' />
+				</button>
+			</footer>
+
+			{/* Enhanced Comments Modal */}
+			<dialog id={`comments_modal${post._id}`} className='modal'>
+				<div className='modal-box bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl'>
+					<div className='flex items-center justify-between mb-6'>
+						<h3 className='text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent'>
+							💬 Comments
+						</h3>
+						<button 
+							className='btn btn-sm btn-circle btn-ghost text-gray-400 hover:text-white'
+							onClick={() => document.getElementById(`comments_modal${post._id}`).close()}
+						>
+							✕
+						</button>
+					</div>
+					
+					{/* Comments List */}
+					<div className='max-h-80 overflow-y-auto mb-6 space-y-4'>
+						{post.comments.length === 0 ? (
+							<div className='text-center py-8'>
+								<div className='text-6xl mb-4'>💭</div>
+								<p className='text-gray-400 text-lg'>No comments yet</p>
+								<p className='text-gray-500 text-sm'>Be the first to share your thoughts!</p>
+							</div>
+						) : (
+							post.comments.map((commentItem) => (
+								<div key={commentItem._id} className='flex gap-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:border-gray-600/50 transition-colors duration-300'>
+									<div className='w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-0.5'>
+										<img
+											src={commentItem.user.profile || "/avatar-placeholder.png"}
+											alt="Commenter avatar"
+											className='w-full h-full rounded-full object-cover bg-gray-800'
+										/>
+									</div>
+									<div className='flex-1'>
+										<div className='flex items-center gap-2 mb-1'>
+											<span className='font-semibold text-white'>{commentItem.user?.firstname}</span>
+											<span className='text-gray-400 text-sm'>@{commentItem.user?.username}</span>
+										</div>
+										<p className='text-gray-300 leading-relaxed'>{commentItem.text}</p>
+									</div>
+								</div>
+							))
+						)}
+					</div>
+
+					{/* Comment Form */}
+					<form onSubmit={handlePostComment} className='border-t border-gray-700/50 pt-6'>
+						<div className='flex gap-3'>
+							<div className='w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-0.5'>
+								<img
+									src={authData?.profile || "/avatar-placeholder.png"}
+									alt="Your avatar"
+									className='w-full h-full rounded-full object-cover bg-gray-800'
+								/>
+							</div>
+							<div className='flex-1'>
+								<textarea
+									className='w-full bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 text-white placeholder-gray-400 resize-none focus:outline-none focus:border-blue-500/50 transition-colors duration-300'
+									placeholder='Write a thoughtful comment...'
+									rows={3}
+									value={comment}
+									onChange={(e) => setComment(e.target.value)}
+								/>
+								<div className='flex justify-between items-center mt-3'>
+									<span className='text-sm text-gray-500'>{comment.length}/280</span>
+									<button 
+										type="submit"
+										className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+											comment.trim().length > 0
+												? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 hover:scale-105'
+												: 'bg-gray-700 text-gray-400 cursor-not-allowed'
+										}`}
+										disabled={comment.trim().length === 0}
+									>
+										{isCommenting ? (
+											<div className='flex items-center gap-2'>
+												<div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin'></div>
+												<span>Posting...</span>
+											</div>
+										) : (
+											'Comment'
+										)}
+									</button>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+				<form method='dialog' className='modal-backdrop'>
+					<button>close</button>
+				</form>
+			</dialog>
+		</article>
 	);
 };
 export default Post;

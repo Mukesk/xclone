@@ -6,37 +6,45 @@ const HomePage = () => {
   const [feedType, setFeedType] = useState("forYou");
 
   return (
-    <>
-      <div className="flex-[4_4_0] text-white mr-auto border-r border-gray-700 min-h-screen">
-        {/* Header */}
-        <div className="flex w-full border-b border-gray-700">
+    <div className="w-full text-white bg-black">
+      {/* Enhanced Header */}
+      <header className="sticky top-0 bg-black/90 backdrop-blur-xl border-b border-gray-700/50 z-10">
+        <div className="flex w-full">
           <div
-            className="flex justify-center flex-1 p-3 hover:bg-secondary transition duration-300 cursor-pointer relative"
+            className={`flex justify-center flex-1 p-4 transition-all duration-300 cursor-pointer relative group ${
+              feedType === "forYou" 
+                ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-white" 
+                : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+            }`}
             onClick={() => setFeedType("forYou")}
           >
-            For you
+            <span className="font-semibold">For You</span>
             {feedType === "forYou" && (
-              <div className="absolute bottom-0 w-10 h-1 rounded-full bg-primary"></div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
             )}
           </div>
           <div
-            className="flex justify-center flex-1 p-3 hover:bg-secondary transition duration-300 cursor-pointer relative"
+            className={`flex justify-center flex-1 p-4 transition-all duration-300 cursor-pointer relative group ${
+              feedType === "following" 
+                ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-white" 
+                : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+            }`}
             onClick={() => setFeedType("following")}
           >
-            Following
+            <span className="font-semibold">Following</span>
             {feedType === "following" && (
-              <div className="absolute bottom-0 w-10 h-1 rounded-full bg-primary"></div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
             )}
           </div>
         </div>
+      </header>
 
-        {/* CREATE POST INPUT */}
-        <CreatePost />
+      {/* CREATE POST INPUT */}
+      <CreatePost />
 
-        {/* POSTS */}
-        <Posts feedType={feedType} />
-      </div>
-    </>
+      {/* POSTS */}
+      <Posts feedType={feedType} />
+    </div>
   );
 };
 
