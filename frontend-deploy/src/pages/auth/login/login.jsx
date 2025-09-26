@@ -4,7 +4,8 @@ import axios from 'axios';
 import { useState } from 'react';
 import baseUrl from '../../../constant/baseUrl';
 import toast, { Toaster } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom'; // Use the useNavigate hook
+import { useNavigate } from 'react-router-dom';
+import { setAuthToken } from '../../../utils/auth';
 
 const Login = () => {
   const [userData, setUserdata] = useState({
@@ -36,8 +37,14 @@ const Login = () => {
     },
     onSuccess: (data) => {
       console.log('Login successful');
+      
+      // Store token if provided in response
+      if (data.token) {
+        setAuthToken(data.token);
+      }
+      
       toast.success('Login successful');
-      queryClient.invalidateQueries(['logout']);
+      queryClient.invalidateQueries(['authData']);
       navigate('/'); // Redirect to dashboard after successful login
     },
     onError: (error) => {

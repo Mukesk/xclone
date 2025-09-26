@@ -36,7 +36,7 @@ export const signup = async (req,res)=>{
     
     if (newUser)
 {
-    generatreCookie(newUser._id,res)
+    const token = generatreCookie(newUser._id,res)
     await newUser.save()
     res.status(200).json({
         _id:newUser._id,
@@ -44,8 +44,8 @@ export const signup = async (req,res)=>{
         firstname:newUser.firstname,
         lastname:newUser.lastname,
         email:newUser.email,
-        password:newUser.password,
         followers:newUser.followers,
+        token: token // Include token in response
 
 
     })
@@ -66,16 +66,17 @@ export const login = async(req,res)=>{
    if(!existsusername ||!ispasscorrect){
     res.status(400).json({err:"invalid passwor and username"})
    }
-   else{generatreCookie(existsusername._id,res)
-   res.status(200).json({
-    _id:existsusername._id,
-    username:existsusername.username,
-    firstname:existsusername.firstname,
-    lastname:existsusername.lastname,
-    email:existsusername.email,
-    password:existsusername.password,
-    followers:existsusername.followers,
-   }
+   else{
+       const token = generatreCookie(existsusername._id,res)
+       res.status(200).json({
+        _id:existsusername._id,
+        username:existsusername.username,
+        firstname:existsusername.firstname,
+        lastname:existsusername.lastname,
+        email:existsusername.email,
+        followers:existsusername.followers,
+        token: token // Include token in response
+       }
 
 
 )
@@ -87,9 +88,10 @@ export const logout = async(req,res)=>{
     try {
         res.cookie("jvt", "", {
           maxAge: 0, // Expire immediately
-          httpOnly: true, // Secure and inaccessible from client-side scripts
-          secure: true, // Use true if running over HTTPS
-          sameSite: "Strict", // Prevent cross-site cookie issues
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
         });
         res.status(200).json({ msg: "Logout successful" });
       } catch (err) {

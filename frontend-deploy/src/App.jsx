@@ -13,6 +13,7 @@ import baseUrl from "./constant/baseUrl.js";
 import LoadingSpinner from "./components/common/LoadingSpinner.jsx";
 import PageLoader from "./components/common/PageLoader.jsx";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
+import { getAuthToken } from "./utils/auth.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,10 +29,12 @@ const App = () => {
     queryKey: ['authData'],
     queryFn: async () => {
       try {
+        const token = getAuthToken();
         const res = await axios.get(`${baseUrl}/api/auth/me`, {
           headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           },
           withCredentials: true
         });

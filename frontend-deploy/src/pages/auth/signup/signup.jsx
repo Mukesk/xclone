@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import baseUrl from "../../../constant/baseUrl";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
-import { useNavigate } from "react-router-dom"; // For navigation after successful signup
+import { useNavigate } from "react-router-dom";
+import { setAuthToken } from "../../../utils/auth";
 
 const Signup = () => {
   const [userData, setUserData] = useState({
@@ -13,7 +14,8 @@ const Signup = () => {
     password: "",
   });
 
-  const navigate = useNavigate(); // To redirect user after successful signup
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { mutate, isLoading, isError, error } = useMutation({
     mutationFn: async ({ firstname, email, username, password }) => {
@@ -30,9 +32,17 @@ const Signup = () => {
       );
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("User created successfully");
-      navigate("/login"); // Redirect to the login page after signup
+      
+      // Store token if provided in response
+      if (data.token) {
+        setAuthToken(data.token);
+        queryClient.invalidateQueries(['authData']);
+        navigate("/"); // Redirect to home after successful signup
+      } else {
+        navigate("/login"); // Redirect to login if no token
+      }
     },
     onError: (error) => {
       toast.error("Signup failed: " + (error.response?.data?.message || "Unknown error"));

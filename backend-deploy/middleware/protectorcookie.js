@@ -3,8 +3,17 @@ import User from "../model/usermodel.js";
 
 const protectorcookie= async (req, res, next) => {
   try {
-    // Check if the token exists in cookies
-    const token = req.cookies.jvt;
+    // Check if the token exists in cookies first, then Authorization header
+    let token = req.cookies.jvt;
+    
+    // Fallback to Authorization header if cookie is not present
+    if (!token && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+      if (authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+    
     if (!token) {
       return res.status(401).json({ error: "Access denied. No token provided." });
     }
