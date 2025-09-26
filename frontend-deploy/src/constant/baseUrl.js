@@ -1,5 +1,7 @@
-// Use environment variable if available, otherwise use separate backend deployment
+// Use environment variable if available, otherwise use development server
 const baseUrl = import.meta.env.VITE_BACKEND_URL || 
-  'https://backend-deploy-dm8weukmi-mukesks-projects.vercel.app';
+  (import.meta.env.MODE === 'production' 
+    ? 'https://your-backend-name.onrender.com' 
+    : 'http://localhost:8080');
 
 export default baseUrl;

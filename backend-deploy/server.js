@@ -16,8 +16,8 @@ import cors from "cors";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from root directory
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+// Load environment variables
+dotenv.config();
 
 // Debug environment loading
 console.log('Environment loaded:', {
@@ -39,7 +39,33 @@ const PORT = process.env.PORT || 8080; // Default port fallback
 
 // Middleware
 app.use(cors({
-  origin: [process.env.FRONTEND_URL, "http://localhost:5173"],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin.includes('localhost')) {
+      return callback(null, true);
+    }
+    
+    // Allow Render deployments
+    if (origin.includes('.onrender.com')) {
+      return callback(null, true);
+    }
+    
+    // Allow specific frontend URL if set
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    
+    // Allow Vercel deployments (in case still using)
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    console.log('CORS Blocked:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true, 
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: [
@@ -66,18 +92,32 @@ app.use("/api/user", userRoute);
 app.use("/api/post/", postroute);
 app.use("/api/notification/", notRoute);
 
-// Serve frontend build
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, "frontend", "dist")));
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK', 
+        message: 'XClone Backend API is running!',
+        timestamp: new Date().toISOString()
+    });
+});
 
-app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+// API info endpoint
+app.get('/api', (req, res) => {
+    res.json({ 
+        message: 'XClone API is running!',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/api/auth/*',
+            users: '/api/user/*',
+            posts: '/api/post/*',
+            notifications: '/api/notification/*'
+        }
+    });
 });
 
 
-
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
     dbcon();
 });
