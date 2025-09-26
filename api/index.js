@@ -52,6 +52,11 @@ app.use(cors({
             return callback(null, true);
         }
         
+        // Allow stable production domain
+        if (origin === 'https://xclone-chi.vercel.app') {
+            return callback(null, true);
+        }
+        
         // Allow any .vercel.app domain (for other deployments)
         if (origin.includes('.vercel.app')) {
             return callback(null, true);

@@ -4,5 +4,10 @@
   "outputDirectory": "frontend/dist",
   "env": {
     "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "VITE_BACKEND_URL": "https://$VERCEL_URL"
+    }
   }
 }
