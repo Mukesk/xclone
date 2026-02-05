@@ -1,25 +1,30 @@
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import XSvg from "../../../components/svgs/X";
+import { MdOutlineMail } from "react-icons/md";
+import { FaUser } from "react-icons/fa";
+import { MdPassword } from "react-icons/md";
+import { MdDriveFileRenameOutline } from "react-icons/md";
 import { useMutation } from "@tanstack/react-query";
-import baseUrl from "../../../constant/baseUrl";
-import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
-import { useNavigate } from "react-router-dom"; // For navigation after successful signup
+import axios from "axios";
+import baseUrl from "../../../constant/baseUrl";
 
-const Signup = () => {
-  const [userData, setUserData] = useState({
-    firstname: "",
+const SignUp = () => {
+  const [formData, setFormData] = useState({
     email: "",
     username: "",
+    firstname: "",
     password: "",
   });
 
-  const navigate = useNavigate(); // To redirect user after successful signup
+  const navigate = useNavigate();
 
   const { mutate, isLoading, isError, error } = useMutation({
-    mutationFn: async ({ firstname, email, username, password }) => {
+    mutationFn: async ({ email, username, firstname, password }) => {
       const res = await axios.post(
         `${baseUrl}/api/auth/signup`,
-        { firstname, username, password, email },
+        { email, username, firstname, password },
         {
           headers: {
             "Content-Type": "application/json",
@@ -31,103 +36,108 @@ const Signup = () => {
       return res.data;
     },
     onSuccess: () => {
-      toast.success("User created successfully");
-      navigate("/login"); // Redirect to the login page after signup
+      toast.success("Account created successfully");
+      navigate("/login");
     },
     onError: (error) => {
-      toast.error("Signup failed: " + (error.response?.data?.message || "Unknown error"));
+      toast.error(error.response?.data?.message || "Signup failed");
     },
   });
 
-  const handleData = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutate(userData); // Call the mutation function
+    mutate(formData);
   };
 
   return (
-    <>
-      <div className="bg-black flex flex-col justify-center items-center text-gray-50 h-screen">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-1/2">
-          <h1 className="text-5xl">Signup</h1>
-
-          <div className="text-2xl">Name</div>
-          <input
-            className="border-gray-500n text-black h-12 border rounded"
-            value={userData.firstname}
-            placeholder="Fullname"
-            name="firstname"
-            type="text"
-            onChange={handleData}
-            required
-          />
-
-          <div className="text-2xl">Username</div>
-          <input
-            className="border-gray-500 h-12 text-black border rounded"
-            value={userData.username}
-            placeholder="Username"
-            name="username"
-            type="text"
-            onChange={handleData}
-            required
-          />
-
-          <div className="text-2xl">Password</div>
-          <input
-            className="border-gray-500 h-12 text-black border rounded"
-            value={userData.password}
-            placeholder="Password"
-            name="password"
-            type="password"
-            onChange={handleData}
-            required
-          />
-
-          <div className="text-2xl">E-Mail</div>
-          <input
-            className="border-gray-500 text-black h-12 border rounded"
-            value={userData.email}
-            placeholder="E-Mail Address"
-            name="email"
-            type="email"
-            onChange={handleData}
-            required
-          />
-          <br />
-          <button
-            type="submit"
-            className="p-1 rounded border border-slate-500"
-            disabled={isLoading} // Disable the button while loading
-          >
-            {isLoading ? "Signing up..." : "Signup"} {/* Show loading text */}
-          </button>
-
-          {isError && (
-            <p className="text-red-500">
-              Error: {error?.response?.data?.message || "Signup failed"}
-            </p>
-          )}
-
-          {/* Add the "Already have an account?" text and the Login button */}
-          <div className="flex justify-center items-center mt-4">
-            <p className="text-white mr-2">Already have an account?</p>
-            <button
-              type="button"
-              onClick={() => navigate("/login")} // Redirect to login page
-              className="text-blue-500"
-            >
-              Login
-            </button>
+    <div className="max-w-screen-xl mx-auto flex h-screen px-10 bg-black">
+      {/* Left Side */}
+      <div className="flex-1 hidden lg:flex items-center justify-center">
+        <XSvg className="lg:w-2/3 fill-white" />
+      </div>
+      
+      {/* Right Side */}
+      <div className="flex-1 flex flex-col justify-center items-center">
+        <form className="lg:w-2/3 mx-auto md:mx-20 flex gap-4 flex-col" onSubmit={handleSubmit}>
+          <XSvg className="w-24 lg:hidden fill-white" />
+          <h1 className="text-4xl font-extrabold text-white mb-4">Join today.</h1>
+          
+          <label className="input input-bordered rounded-full flex items-center gap-2 bg-black border-gray-700 focus-within:border-blue-500 text-white h-12 px-4">
+            <MdOutlineMail className="text-gray-500" />
+            <input
+              type="email"
+              className="grow bg-transparent border-none outline-none placeholder-gray-500"
+              placeholder="Email"
+              name="email"
+              onChange={handleInputChange}
+              value={formData.email}
+              required
+            />
+          </label>
+          
+          <div className="flex gap-4 flex-wrap">
+            <label className="input input-bordered rounded-full flex items-center gap-2 flex-1 bg-black border-gray-700 focus-within:border-blue-500 text-white h-12 px-4">
+              <FaUser className="text-gray-500" />
+              <input
+                type="text"
+                className="grow bg-transparent border-none outline-none placeholder-gray-500"
+                placeholder="Username"
+                name="username"
+                onChange={handleInputChange}
+                value={formData.username}
+                required
+              />
+            </label>
+            <label className="input input-bordered rounded-full flex items-center gap-2 flex-1 bg-black border-gray-700 focus-within:border-blue-500 text-white h-12 px-4">
+              <MdDriveFileRenameOutline className="text-gray-500" />
+              <input
+                type="text"
+                className="grow bg-transparent border-none outline-none placeholder-gray-500"
+                placeholder="Full Name"
+                name="firstname"
+                onChange={handleInputChange}
+                value={formData.firstname}
+                required
+              />
+            </label>
           </div>
+          
+          <label className="input input-bordered rounded-full flex items-center gap-2 bg-black border-gray-700 focus-within:border-blue-500 text-white h-12 px-4">
+            <MdPassword className="text-gray-500" />
+            <input
+              type="password"
+              className="grow bg-transparent border-none outline-none placeholder-gray-500"
+              placeholder="Password"
+              name="password"
+              onChange={handleInputChange}
+              value={formData.password}
+              required
+            />
+          </label>
+          
+          <button 
+            className="btn rounded-full btn-primary bg-white text-black hover:bg-gray-200 border-none w-full h-12 font-bold mt-4"
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading..." : "Sign up"}
+          </button>
+          
+          {isError && <p className="text-red-500 text-center">{error.response?.data?.message || "Something went wrong"}</p>}
         </form>
+        
+        <div className="flex flex-col lg:w-2/3 gap-2 mt-4 mx-auto md:mx-20">
+          <p className="text-white text-lg">Already have an account?</p>
+          <Link to="/login" className="w-full">
+            <button className="btn rounded-full btn-outline border-gray-600 text-blue-500 hover:bg-blue-500/10 hover:border-blue-500 w-full h-12 font-bold">Sign in</button>
+          </Link>
+        </div>
       </div>
       <Toaster />
-    </>
+    </div>
   );
 };
-
-export default Signup;
+export default SignUp;

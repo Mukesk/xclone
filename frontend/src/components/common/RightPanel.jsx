@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
 import { useQuery } from "@tanstack/react-query";
 import baseUrl from "../../constant/baseUrl";
@@ -7,6 +8,7 @@ import useFollow from "../../hooks/useFollow";
 import { useState } from "react";
 
 const RightPanel = () => {
+	const { data: authUser } = useQuery({ queryKey: ["authData"] });
 	const [hoveredUser, setHoveredUser] = useState(null);
 	const {data:user,isLoading}=useQuery({
 		queryKey:['suggestion'],
@@ -121,6 +123,12 @@ const RightPanel = () => {
 					<Link 
 						to='/explore' 
 						className='text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-300 hover:underline'
+						onClick={(e) => {
+                            if (!authUser) {
+                                e.preventDefault();
+                                toast.error("Please login to view more");
+                            }
+                        }}
 					>
 						Show more →
 					</Link>

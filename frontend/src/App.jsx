@@ -57,18 +57,16 @@ const App = () => {
         
         <div className="flex w-full h-full relative z-10">
           {/* Sidebar with slide-in animation */}
-          {authData && (
-            <div className="animate-slide-in-left h-full">
-              <Sidebar />
-            </div>
-          )}
+          <div className="animate-slide-in-left h-full">
+            <Sidebar />
+          </div>
           
           {/* Main content area */}
           <div className="flex-grow bg-black/80 backdrop-blur-sm animate-fade-in h-full overflow-y-auto scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600">
             <Routes>
               <Route 
                 path="/" 
-                element={authData ? <Home /> : <Navigate to="/login" />} 
+                element={<Home />} 
               />
               <Route 
                 path="/login" 
@@ -89,12 +87,10 @@ const App = () => {
             </Routes>
           </div>
           
-          {/* Right panel with slide-in animation */}
-          {authData && (
+           {/* Right panel with slide-in animation */}
             <div className="animate-slide-in-right h-full">
               <RightPanel />
             </div>
-          )}
         </div>
       </div>
     </BrowserRouter>

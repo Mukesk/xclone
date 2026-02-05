@@ -95,6 +95,7 @@ const { mutate: commentPost } = useMutation({
 	};
 
 	const handleLikePost = () => {
+		if (!authData) return toast.error("Please login to like posts");
 		if (!isMyPost){
           likePost(likeData)
 
@@ -103,24 +104,23 @@ const { mutate: commentPost } = useMutation({
 
 	return (
 		<article 
-			className={`group relative bg-gradient-to-br from-gray-900/30 to-gray-800/20 backdrop-blur-sm border border-gray-700/50 rounded-2xl mx-4 my-4 p-6 transition-all duration-300 hover:border-gray-600/50 hover:shadow-2xl hover:shadow-gray-900/20 ${
-				isHovered ? 'transform scale-[1.01]' : ''
+			className={`group relative bg-black border-b border-gray-800 p-4 transition-all duration-300 hover:bg-gray-900/30 ${
+				isHovered ? '' : ''
 			}`}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
 		>
 			{/* Post Header */}
-			<header className='flex items-start gap-4 mb-4'>
-				{/* Avatar with gradient border */}
+			<header className='flex items-start gap-3 mb-3'>
+				{/* Avatar */}
 				<Link to={`/profile/${postOwner.username}`} className='group/avatar relative'>
-					<div className='w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-0.5 transition-all duration-300 group-hover/avatar:scale-110'>
+					<div className='w-10 h-10 rounded-full overflow-hidden'>
 						<img 
 							src={postOwner.profile || "/avatar-placeholder.png"} 
 							alt={`${postOwner.firstname}'s avatar`}
-							className='w-full h-full rounded-full object-cover bg-gray-800'
+							className='w-full h-full object-cover bg-gray-800'
 						/>
 					</div>
-					<div className='absolute inset-0 bg-blue-400/20 rounded-full blur-lg opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300'></div>
 				</Link>
 
 				<div className='flex-1 min-w-0'>
@@ -176,31 +176,35 @@ const { mutate: commentPost } = useMutation({
 			</header>
 
 			{/* Post Content */}
-			<div className='mb-6'>
+			<div className='mb-4'>
 				{post.text && (
-					<p className='text-white text-lg leading-relaxed mb-4 whitespace-pre-wrap'>
+					<p className='text-white text-[15px] leading-relaxed mb-3 whitespace-pre-wrap'>
 						{post.text}
 					</p>
 				)}
 				
 				{post.img && (
-					<div className='relative group/image overflow-hidden rounded-2xl border border-gray-700/50'>
-						<img
-							src={post.img}
-							alt='Post image'
-							className='w-full max-h-[500px] object-cover transition-transform duration-500 group-hover/image:scale-105'
-						/>
-						<div className='absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300'></div>
+					<div className='relative group/image overflow-hidden rounded-xl border border-gray-800 bg-black'>
+						<div className='flex justify-center items-center w-full'>
+							<img
+								src={post.img}
+								alt='Post image'
+								className='max-w-full max-h-[550px] object-contain'
+							/>
+						</div>
 					</div>
 				)}
 			</div>
 			{/* Engagement Actions */}
-			<footer className='flex items-center justify-between pt-4 border-t border-gray-700/30'>
+			<footer className='flex items-center justify-between mt-2'>
 				<div className='flex items-center gap-8'>
 					{/* Comments */}
 					<button
 						className='group flex items-center gap-2 px-3 py-2 rounded-full hover:bg-blue-500/10 transition-all duration-300'
-						onClick={() => document.getElementById("comments_modal" + post._id).showModal()}
+						onClick={() => {
+							if (!authData) return toast.error("Please login to comment");
+							document.getElementById("comments_modal" + post._id).showModal();
+						}}
 					>
 						<FaRegComment className='w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors duration-300' />
 						<span className='text-sm font-medium text-gray-400 group-hover:text-blue-400 transition-colors duration-300'>

@@ -2,7 +2,7 @@ import XSvg from "../svgs/X";
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
 import { useMutation, useQueryClient,useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -12,6 +12,7 @@ import { useState } from "react";
 
 const Sidebar = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
  
@@ -54,8 +55,9 @@ const Sidebar = () => {
     },
     onSuccess: () => {
       toast.success("Logout successfully");
+      queryClient.setQueryData(["authData"], null);
       queryClient.invalidateQueries(["authData"]);
-      queryClient.clear(); // Clear all cached data on logout
+      navigate("/");
     },
   });
 
@@ -66,8 +68,10 @@ const Sidebar = () => {
 
   const navItems = [
     { path: "/", icon: MdHomeFilled, label: "Home", size: "w-7 h-7" },
-    { path: "/notifications", icon: IoNotifications, label: "Notifications", size: "w-6 h-6" },
-    { path: `/profile/${authData?.username}`, icon: FaUser, label: "Profile", size: "w-6 h-6" }
+    ...(authData ? [
+      { path: "/notifications", icon: IoNotifications, label: "Notifications", size: "w-6 h-6" },
+      { path: `/profile/${authData?.username}`, icon: FaUser, label: "Profile", size: "w-6 h-6" }
+    ] : [])
   ];
 
   const isActiveRoute = (path) => {
@@ -174,6 +178,19 @@ const Sidebar = () => {
               <BiLogOut className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
               <span className="hidden md:block font-medium">Logout</span>
             </button>
+          </div>
+        )}
+        
+        {/* Guest Login Button */}
+        {!authData && (
+          <div className="p-4 mt-auto">
+            <Link
+              to="/login"
+              className="group flex items-center justify-center gap-3 w-full py-3 px-4 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-blue-500/30"
+            >
+              <BiLogOut className="w-5 h-5 rotate-180" />
+              <span className="hidden md:block">Log in</span>
+            </Link>
           </div>
         )}
       </div>
