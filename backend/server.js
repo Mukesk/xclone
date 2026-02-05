@@ -77,7 +77,17 @@ app.get("*", (req, res) => {
 
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Export for Vercel
+export default app;
+
+// Start server only if run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    dbcon();
+  });
+} else {
+  // For Vercel (imported as module), connect to DB
+  // Note: in serverless, connection reuse is handled by mongoose internally
   dbcon();
-});
+}
