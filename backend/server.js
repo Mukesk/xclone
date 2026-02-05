@@ -29,9 +29,9 @@ console.log('Environment loaded:', {
 // __dirname is already defined above
 
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 const app = express();
@@ -40,12 +40,12 @@ const PORT = process.env.PORT || 8080; // Default port fallback
 // Middleware
 app.use(cors({
   origin: [process.env.FRONTEND_URL, "http://localhost:5173"],
-  credentials: true, 
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: [
-    "Content-Type", 
-    "Authorization", 
-    "Accept", 
+    "Content-Type",
+    "Authorization",
+    "Accept",
     "X-Requested-With",
     "Origin",
     "Cache-Control",
@@ -68,16 +68,16 @@ app.use("/api/notification/", notRoute);
 
 // Serve frontend build
 // Serve static frontend files
-app.use(express.static(path.join(__dirname, "frontend", "dist")));
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+  res.sendFile(path.resolve(__dirname, "../frontend/dist", "index.html"));
 });
 
 
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    dbcon();
+  console.log(`Server running on port ${PORT}`);
+  dbcon();
 });
