@@ -27,6 +27,9 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: "Post must have text or an image" });
     }
 
+    // ✅ Sanitize text input
+    if (text) text = String(text);
+
     // 🔥 Log the incoming request
     console.log("Received post request:", { text, imgLength: img ? img.length : 0 });
 
@@ -127,9 +130,11 @@ export const commentPost = async (req, res) => {
     const { comment } = req.body;
 
     // Check if comment is not empty
-    if (!comment || comment.trim().length === 0) {
+    if (!comment || String(comment).trim().length === 0) {
       return res.status(400).json({ error: "Comment cannot be empty" });
     }
+
+    const sanitizedComment = String(comment);
 
     // Find post and user
     const post = await Post.findById(id);
@@ -143,7 +148,7 @@ export const commentPost = async (req, res) => {
     }
 
     // Add comment
-    post.comments.push({ text: comment, user: { profile: user.profile, username: user.username, firstname: user.firstname } });
+    post.comments.push({ text: sanitizedComment, user: { profile: user.profile, username: user.username, firstname: user.firstname } });
 
     // Save the post and populate the comments with user data
     await post.save();

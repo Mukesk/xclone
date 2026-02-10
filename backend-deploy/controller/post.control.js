@@ -8,8 +8,8 @@ import multer from "multer";
 const storage = multer.memoryStorage(); // Store files in memory before uploading
 
 const upload = multer({
-    storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 });
 
 export default upload;
@@ -26,6 +26,9 @@ export const createPost = async (req, res) => {
     if (!text && !img) {
       return res.status(400).json({ error: "Post must have text or an image" });
     }
+
+    // ✅ Sanitize text input
+    if (text) text = String(text);
 
     // 🔥 Log the incoming request
     console.log("Received post request:", { text, imgLength: img ? img.length : 0 });
@@ -56,22 +59,22 @@ export const createPost = async (req, res) => {
 };
 
 
-export const deletePost =async(req,res)=>{
-   const reqid=  req.params
-   if (!reqid.id){
-      res.status(400).json({err:"post id is not exists"})
+export const deletePost = async (req, res) => {
+  const reqid = req.params
+  if (!reqid.id) {
+    res.status(400).json({ err: "post id is not exists" })
 
-   }
-   const post =  await Post.findOne({_id:reqid.id})
-   const userId=req.user._id.toString()
-   if (userId==(post.user._id.toString())){
-       await Post.findOneAndDelete({_id:reqid.id})
-       res.status(200).json({success:"post is deleted"})
-   }
-   else{
-      res.status(400).json({err:"post id and userid is not match"})
-   }
-   
+  }
+  const post = await Post.findOne({ _id: reqid.id })
+  const userId = req.user._id.toString()
+  if (userId == (post.user._id.toString())) {
+    await Post.findOneAndDelete({ _id: reqid.id })
+    res.status(200).json({ success: "post is deleted" })
+  }
+  else {
+    res.status(400).json({ err: "post id and userid is not match" })
+  }
+
 
 }
 export const likeUnlike = async (req, res) => {
@@ -127,9 +130,11 @@ export const commentPost = async (req, res) => {
     const { comment } = req.body;
 
     // Check if comment is not empty
-    if (!comment || comment.trim().length === 0) {
+    if (!comment || String(comment).trim().length === 0) {
       return res.status(400).json({ error: "Comment cannot be empty" });
     }
+
+    const sanitizedComment = String(comment);
 
     // Find post and user
     const post = await Post.findById(id);
@@ -143,7 +148,7 @@ export const commentPost = async (req, res) => {
     }
 
     // Add comment
-    post.comments.push({ text: comment, user: {profile:user.profile,username:user.username,firstname:user.firstname}});
+    post.comments.push({ text: sanitizedComment, user: { profile: user.profile, username: user.username, firstname: user.firstname } });
 
     // Save the post and populate the comments with user data
     await post.save();
@@ -163,113 +168,113 @@ export const commentPost = async (req, res) => {
 
 
 
-export const likedPost=async(req,res)=>{
-   try{
-   const {id}= req.params;
-   const posts=Post.find({likes:{$in:[id]}}
-   )
-   res.status(200).json(posts)
-
-   
+export const likedPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const posts = Post.find({ likes: { $in: [id] } }
+    )
+    res.status(200).json(posts)
 
 
 
-   }catch(err){
-       res.status(500).json({err:`errror in gettting liked post${err}`})
 
-   }
- }
 
- export const forYou =async(req,res)=>{
-  try{
-  const userId =req.user.id
-   const feedPosts = await Post.find().sort({createdAt:-1}).populate({
-    path:"user",
-    select:"-password"
-   })
-   res.status(200).json(feedPosts)
+  } catch (err) {
+    res.status(500).json({ err: `errror in gettting liked post${err}` })
 
- }
- catch(err){
-  res.status(500).json({err:`errror in gettting foryou post${err}`})
- }
+  }
 }
- export const followingPost = async (req, res) => {
-   try {
-     const userId = req.user._id;
- 
-     // Fetch the logged-in user
-     const user = await User.findById(userId);
- 
-     if (!user) {
-       return res.status(404).json({ error: "User not found." });
-     }
- 
-     const following = user.following; // List of followed users' IDs
- 
-     // Fetch posts from followed users, sorted by creation time
-     const feedPosts = await Post.find({ user: { $in: following } })
-       .sort({ createdAt: -1 })
-       .populate({
-         path: "user", // Assuming 'user' is the field in Post schema
-         select: "-password", // Exclude sensitive fields
-       })
-       .populate({
-         path: "comments.user", // Assuming 'comments.user' is nested in Post schema
-         select: "-password", // Exclude sensitive fields
-       });
- 
-     res.status(200).json(feedPosts);
-   } catch (err) {
-     console.error(err); // Log the error for debugging
-     res.status(500).json({ error: "An error occurred while retrieving the feed posts." });
-   }
- };
- 
- export const getallPost= async(req,res)=>{
-          
-  try{
-    const userId =req.user._id
-    const likePost= await Post.find({user:userId}).sort({createdAt:-1}).populate({
-      path:"user",
-      select:["-password","-email","-link","-bio"]
-    }).populate({
-      path:"comments.user",
-      select:["-password","-email","-link","-bio"]
+
+export const forYou = async (req, res) => {
+  try {
+    const userId = req.user.id
+    const feedPosts = await Post.find().sort({ createdAt: -1 }).populate({
+      path: "user",
+      select: "-password"
     })
-   res.status(200).json(likePost)
-   
+    res.status(200).json(feedPosts)
+
+  }
+  catch (err) {
+    res.status(500).json({ err: `errror in gettting foryou post${err}` })
+  }
+}
+export const followingPost = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Fetch the logged-in user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const following = user.following; // List of followed users' IDs
+
+    // Fetch posts from followed users, sorted by creation time
+    const feedPosts = await Post.find({ user: { $in: following } })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "user", // Assuming 'user' is the field in Post schema
+        select: "-password", // Exclude sensitive fields
+      })
+      .populate({
+        path: "comments.user", // Assuming 'comments.user' is nested in Post schema
+        select: "-password", // Exclude sensitive fields
+      });
+
+    res.status(200).json(feedPosts);
+  } catch (err) {
+    console.error(err); // Log the error for debugging
+    res.status(500).json({ error: "An error occurred while retrieving the feed posts." });
+  }
+};
+
+export const getallPost = async (req, res) => {
+
+  try {
+    const userId = req.user._id
+    const likePost = await Post.find({ user: userId }).sort({ createdAt: -1 }).populate({
+      path: "user",
+      select: ["-password", "-email", "-link", "-bio"]
+    }).populate({
+      path: "comments.user",
+      select: ["-password", "-email", "-link", "-bio"]
+    })
+    res.status(200).json(likePost)
+
   }
   catch (err) {
     console.error(err); // Log the error for debugging
     res.status(500).json({ error: "An error occurred while retrieving the liked posts." });
   }
 
- }
+}
 
 
- export const getLikedpost = async (req, res) => {
-   try {
-     const userId = req.user._id;
-     const postliked = req.user.likedPosts; // This is an array of post IDs
- 
-     // Fetch posts that match the liked post IDs
-     const likePost = await Post.find({ _id: { $in: postliked } })
-       .sort({ createdAt: -1 })
-       .populate({
-         path: "user",
-         select: ["-password", "-email", "-link", "-bio"],
-       })
-       .populate({
-         path: "comments.user",
-         select: ["-password", "-email", "-link", "-bio"],
-       });
- 
-     res.status(200).json(likePost);
-   } catch (error) {
-     console.error("Error fetching liked posts:", error);
-     res.status(500).json({ message: "Failed to fetch liked posts" });
-   }
- };
- 
+export const getLikedpost = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const postliked = req.user.likedPosts; // This is an array of post IDs
+
+    // Fetch posts that match the liked post IDs
+    const likePost = await Post.find({ _id: { $in: postliked } })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "user",
+        select: ["-password", "-email", "-link", "-bio"],
+      })
+      .populate({
+        path: "comments.user",
+        select: ["-password", "-email", "-link", "-bio"],
+      });
+
+    res.status(200).json(likePost);
+  } catch (error) {
+    console.error("Error fetching liked posts:", error);
+    res.status(500).json({ message: "Failed to fetch liked posts" });
+  }
+};
+
 
