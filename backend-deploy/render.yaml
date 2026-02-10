@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: xclone-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGO
+        value: mongodb+srv://mukesh:mukesh%402005@cluster0.pqqkp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - key: JWT_SECRET
+        value: your_local_jwt_secret_here_make_it_long_and_secure
+      - key: CLOUDINARY_CLOUD_NAME
+        value: do21g4z9a
+      - key: CLOUDINARY_API_KEY
+        value: "244317735436633"
+      - key: CLOUDINARY_API_SECRET
+        value: EhtF9k1NVc8C3TaztVB62Ksek7o
+      - key: NODE_ENV
+        value: production
