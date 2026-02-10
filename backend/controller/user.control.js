@@ -86,7 +86,7 @@ export const suggested = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const {
+    let {
       username,
       email,
       firstname,
@@ -105,6 +105,13 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ err: "User not found" });
     }
 
+    // ✅ Sanitize inputs (basic prevention of NoSQL injection payloads if they slip through)
+    if (username) username = String(username);
+    if (email) email = String(email);
+    if (firstname) firstname = String(firstname);
+    if (bio) bio = String(bio);
+    if (link) link = String(link);
+
     // ✅ If updating password, verify current password
     if (new_password) {
       if (!current_password) {
@@ -116,6 +123,10 @@ export const updateProfile = async (req, res) => {
         return res.status(400).json({ err: "Current password is incorrect" });
       }
 
+      if (new_password.length < 6) {
+        return res.status(400).json({ err: "Password must be at least 6 characters long" });
+      }
+
       // Hash new password
       const salt = await bcryptjs.genSalt(10);
       user.password = await bcryptjs.hash(new_password, salt);
@@ -124,7 +135,14 @@ export const updateProfile = async (req, res) => {
 
     // ✅ Update user details (only if provided)
     if (username) user.username = username;
-    if (email) user.email = email;
+    if (email) {
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ err: "Invalid email format" });
+      }
+      user.email = email;
+    }
     if (firstname) user.firstname = firstname;
     if (bio) user.bio = bio;
     if (link) user.link = link;

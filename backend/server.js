@@ -11,6 +11,11 @@ import cloudinary from "cloudinary";
 import postroute from "./router/post.route.js";
 import notRoute from "./router/notification.route.js";
 import cors from "cors";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
+import hpp from "hpp";
+import rateLimit from "express-rate-limit";
 
 // Get directory paths for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -59,6 +64,20 @@ app.use(cors({
 app.use(express.json({ limit: "5000mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
 app.use(cookieParser());
+
+// Security Middleware
+app.use(helmet());
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later."
+});
+app.use("/api/", limiter);
 
 // Routes
 app.use("/api/auth/", router);
